@@ -55,7 +55,10 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
         <div className="page">
             <header className="page-header">
                 <h2>List of Users</h2>
-                <button onClick={() => navigate('/')}>Back to Home</button>
+                <div className="header-actions">
+                    <button onClick={() => navigate('/')}>Back</button>
+                    <button className="add-btn" onClick={() => navigate('/users/add')}>+ Add User</button>
+                </div>
                 <div className="search-container">
                     <input
                         type="text"

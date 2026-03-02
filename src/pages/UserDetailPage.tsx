@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import type {User} from './UserListPage';
+import type {Instrument, User} from './UserListPage';
 
 interface UserDetailPageProps {
     users: User[];
@@ -26,6 +26,16 @@ const UserDetailPage = ({ users }: UserDetailPageProps) => {
             <header className="page-header">
                 <h2>User Profile</h2>
                 <button onClick={() => navigate('/users')}>← Back to List</button>
+                <div className="header-actions">
+                    <button onClick={() => navigate('/users')}>← Back</button>
+                    {/* Tlačítko pro navigaci na formulář nástroje */}
+                    <button
+                        className="add-btn"
+                        onClick={() => navigate(`/users/${id}/add-instrument`)}
+                    >
+                        + Add Instrument
+                    </button>
+                </div>
             </header>
 
             <div className="detail-card">
@@ -48,6 +58,21 @@ const UserDetailPage = ({ users }: UserDetailPageProps) => {
                     <div className="info-group">
                         <label>Account Status</label>
                         <span className="badge-active">Active</span>
+                    </div>
+                    <div className="instruments-section">
+                        <h3>Owned Instruments</h3>
+                        {user.instruments && user.instruments.length > 0 ? (
+                            <ul className="instrument-list">
+                                {user.instruments.map((inst: Instrument) => (
+                                    <li key={inst.id} className="instrument-item">
+                                        <strong>{inst.name}</strong> - {inst.price} CZK
+                                        <p>{inst.description}</p>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>This user has no instruments yet.</p>
+                        )}
                     </div>
                 </div>
             </div>

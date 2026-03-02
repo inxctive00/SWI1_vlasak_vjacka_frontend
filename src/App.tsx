@@ -5,6 +5,7 @@ import UserListPage from './pages/UserListPage';
 import './App.css';
 import UserDetailPage from "./pages/UserDetailPage.tsx";
 import AddUserPage from "./pages/AddUserPage.tsx";
+import AddInstrumentPage from "./pages/AddInstrumentPage.tsx";
 
 interface User {
     id: string;
@@ -45,6 +46,10 @@ function App() {
                 } />
                 <Route path="/users/:id" element={<UserDetailPage users={users} />} />
                 <Route path="/users/add" element={<AddUserPage onUserAdded={addUser} />} />
+                <Route
+                    path="/users/:userId/add-instrument"
+                    element={<AddInstrumentPage onRefresh={fetchUsers} />}
+                />
             </Routes>
         </Router>
     );

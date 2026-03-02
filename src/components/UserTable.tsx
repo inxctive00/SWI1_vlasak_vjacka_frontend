@@ -1,10 +1,11 @@
-import type {User} from '../pages/UserListPage';
+import type {SortableUserKey, User} from '../pages/UserListPage';
 import {Link} from "react-router-dom"; // Importujeme interface
 
 interface UserTableProps {
     users: User[];
-    sortConfig: { key: keyof User; direction: 'asc' | 'desc' };
-    onRequestSort: (key: keyof User) => void;
+    sortConfig: { key: SortableUserKey; direction: 'asc' | 'desc' };
+    // Tady změníme keyof User na SortableUserKey
+    onRequestSort: (key: SortableUserKey) => void;
 }
 
 const UserTable = ({ users, sortConfig, onRequestSort }: UserTableProps) => {

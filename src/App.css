@@ -40,3 +40,127 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Kontejner pro tabulku s horizontálním skrollováním pro mobily */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin: 20px 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #333;
+}
+
+/* Hlavička tabulky */
+.user-table th,
+.user-table td {
+  padding: 14px 16px;
+  text-align: center; /* Vycentruje text horizontálně */
+  vertical-align: middle; /* Vycentruje text vertikálně */
+}
+
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+  position: relative;
+  white-space: nowrap;
+}
+
+.sortable-th:hover {
+  background-color: #eceef1 !important;
+  color: #007bff;
+}
+
+/* Efekt při najetí myší na řádek */
+.user-table tbody tr:hover {
+  background-color: #f1f4f9;
+  transition: background-color 0.2s ease;
+}
+
+/* Styling pro ID (může být výraznější) */
+.user-table td:first-child {
+  font-weight: bold;
+  color: #6c757d;
+  width: 60px;
+}
+
+.uuid-text {
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #666;
+  cursor: help; /* Naznačí, že po najetí myší uvidí uživatel v 'title' celé ID */
+}
+
+/* Aby tabulka kvůli UUID "neustřelila" do šířky */
+.user-table {
+  table-layout: auto;
+}
+
+/* Styling pro e-mail */
+.user-table td:last-child {
+  color: #007bff;
+}
+
+/* Responzivita - na malých obrazovkách zmenšíme písmo */
+@media (max-width: 600px) {
+  .user-table th, .user-table td {
+    padding: 10px;
+    font-size: 0.8rem;
+  }
+}
+
+.search-container {
+  position: relative;
+  margin-bottom: 20px;
+  max-width: 400px; /* Aby nebylo vyhledávání přes celou šířku */
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.clear-search {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #999;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.clear-search:hover {
+  color: #333;
+}
+
+/* Styl pro hlášku, když se nic nenajde */
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-style: italic;
+}

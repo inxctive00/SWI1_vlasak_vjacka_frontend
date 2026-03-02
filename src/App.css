@@ -164,3 +164,56 @@
   color: #666;
   font-style: italic;
 }
+
+.user-link { color: #007bff; text-decoration: none; } .user-link:hover { text-decoration: underline; }
+
+.detail-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  display: flex;
+  gap: 30px;
+  max-width: 600px;
+  margin: 20px 0;
+}
+
+.user-avatar {
+  width: 80px;
+  height: 80px;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.info-group {
+  margin-bottom: 15px;
+}
+
+.info-group label {
+  display: block;
+  font-size: 0.8rem;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.info-group p {
+  font-size: 1.1rem;
+  margin: 0;
+  color: #333;
+}
+
+.badge-active {
+  background: #e6fcf5;
+  color: #0ca678;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}

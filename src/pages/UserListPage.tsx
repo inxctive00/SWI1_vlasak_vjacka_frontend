@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import UserTable from '../components/UserTable';
 
 // 1. Exportujeme interface, aby ho mohl importovat i App.tsx
 export interface User {
@@ -72,46 +73,13 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
 
             <div className="table-container">
                 {isLoading ? (
-                    <p className="loading-text">Loading users from API...</p>
+                    <p>Loading...</p>
                 ) : (
-                    <table className="user-table">
-                        <thead>
-                        <tr>
-                            <th onClick={() => requestSort('id')} className="sortable-th">
-                                ID {sortConfig.key === 'id' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
-                            </th>
-                            <th onClick={() => requestSort('username')} className="sortable-th">
-                                Username {sortConfig.key === 'username' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
-                            </th>
-                            <th onClick={() => requestSort('email')} className="sortable-th">
-                                Email {sortConfig.key === 'email' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
-                            </th>
-                            <th>Status</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {sortedUsers.length > 0 ? (
-                            sortedUsers.map(user => (
-                                <tr key={user.id}>
-                                    <td>
-                                            <span className="uuid-cell" title={user.id}>
-                                                {user.id.substring(0, 8)}...
-                                            </span>
-                                    </td>
-                                    <td><strong>{user.username}</strong></td>
-                                    <td>{user.email}</td>
-                                    <td>
-                                        <span className="badge-active">Active</span>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={4} className="no-results">No users found matching your search.</td>
-                            </tr>
-                        )}
-                        </tbody>
-                    </table>
+                    <UserTable
+                        users={sortedUsers}
+                        sortConfig={sortConfig}
+                        onRequestSort={requestSort}
+                    />
                 )}
             </div>
         </div>

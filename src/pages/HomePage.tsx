@@ -1,8 +1,5 @@
 import { Link } from 'react-router-dom';
 
-// Pokud interface User používáte i zde pro náhled dat,
-// je lepší ho mít v samostatném souboru types.ts,
-// ale pro teď ho můžeme nechat i takto:
 interface User {
     id: string;
     username: string;
@@ -16,20 +13,27 @@ interface HomePageProps {
 }
 
 const HomePage = ({ users, fetchUsers, isLoading }: HomePageProps) => {
+    // Můžeme si vytáhnout info o přihlášeném uživateli z localStorage
+    const currentUsername = localStorage.getItem('username');
+    const currentUserRole = localStorage.getItem('role');
+
     return (
         <div className="page">
             <header className="page-header">
-                <h1>Admin Dashboard</h1>
+                <div className="header-titles">
+                    <h1>Admin Dashboard</h1>
+                    <p>Welcome back, <strong>{currentUsername}</strong> ({currentUserRole})</p>
+                </div>
                 <nav>
-                    {/* Link nemění celou stránku (refresh), jen obsah v Routeru */}
                     <Link to="/users" className="nav-link">Go to User List →</Link>
                 </nav>
             </header>
 
             <main className="content">
                 <section className="api-info">
-                    <h3>API Status</h3>
+                    <h3>System Overview</h3>
                     <p>Endpoint: <code>GET /api/users/all</code></p>
+                    <p>Current Users Count: <strong>{users.length}</strong></p>
 
                     <div className="controls">
                         <button
@@ -38,19 +42,32 @@ const HomePage = ({ users, fetchUsers, isLoading }: HomePageProps) => {
                             disabled={isLoading}
                             className="refresh-btn"
                         >
-                            {isLoading ? 'Loading...' : 'Refresh Cache'}
+                            {isLoading ? 'Syncing...' : 'Refresh Data'}
                         </button>
+
+                        {/* Ukázka: Tlačítko pro přidání uživatele zobrazíme jen Adminovi */}
+                        {currentUserRole === 'ROLE_ADMIN' && (
+                            <Link to="/users/add" className="add-btn-link">
+                                <button style={{ marginLeft: '10px' }}>+ Add New User</button>
+                            </Link>
+                        )}
                     </div>
                 </section>
 
                 <section className="preview-section">
-                    <h3>Raw Data Preview</h3>
+                    <h3>Database Snapshot (JSON)</h3>
                     <textarea
                         className="textbox"
-                        value={JSON.stringify(users, null, 2)}
+                        value={isLoading ? "Loading data from server..." : JSON.stringify(users, null, 2)}
                         readOnly
-                        rows={10}
+                        rows={12}
                         placeholder="No data loaded yet."
+                        style={{
+                            fontFamily: 'monospace',
+                            width: '100%',
+                            backgroundColor: '#f4f4f4',
+                            padding: '10px'
+                        }}
                     />
                 </section>
             </main>

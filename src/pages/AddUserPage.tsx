@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type {User} from './UserListPage';
+import axios from 'axios'; // Importujeme axios
+import type { User } from './UserListPage';
 import * as React from "react";
 
 interface AddUserPageProps {
@@ -10,45 +11,48 @@ interface AddUserPageProps {
 const AddUserPage = ({ onUserAdded }: AddUserPageProps) => {
     const navigate = useNavigate();
 
-    // Stavy pro formulář
     const [formData, setFormData] = useState({
         username: '',
         email: '',
         password: '',
-        role: 'user' // defaultní hodnota
+        role: 'ROLE_USER' // Upravil jsem na ROLE_ prefix, pokud ho Spring očekává
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
-    const handleSubmit = async (e: React.SubmitEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => { // Opraven typ eventu na FormEvent
         e.preventDefault();
         setIsSubmitting(true);
         setError('');
 
         try {
-            const response = await fetch('/api/users/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
+            // Používáme axios místo fetch. Interceptor v App.tsx přidá token sám.
+            const response = await axios.post<User>('http://localhost:8080/api/users/add', formData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to create user');
-            }
-
-            const createdUser = await response.json();
+            // Axios vrací data přímo v response.data
+            const createdUser = response.data;
 
             // 1. Aktualizujeme globální stav v App.tsx
             onUserAdded(createdUser);
             // 2. Vrátíme se na seznam uživatelů
             navigate('/users');
 
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Something went wrong');
-        } finally {
-            setIsSubmitting(false);
+        }  catch (err) {
+        // 1. Zjistíme, jestli jde o chybu z Axiosu
+        if (axios.isAxiosError(err)) {
+            // Teď už TS ví, že err je AxiosError a dovolí ti přístup k response
+            const message = err.response?.data?.message || err.message || 'Server error';
+            setError(message);
+        } else if (err instanceof Error) {
+            // Klasická JS chyba (např. chyba v kódu)
+            setError(err.message);
+        } else {
+            // Pro úplnou jistotu
+            setError('An unexpected error occurred');
         }
+    } finally {
+        setIsSubmitting(false);
+    }
     };
 
     return (
@@ -59,7 +63,7 @@ const AddUserPage = ({ onUserAdded }: AddUserPageProps) => {
             </header>
 
             <form className="admin-form" onSubmit={handleSubmit}>
-                {error && <div className="error-box">{error}</div>}
+                {error && <div className="error-box" style={{color: 'red'}}>{error}</div>}
 
                 <div className="form-group">
                     <label>Username</label>
@@ -97,9 +101,10 @@ const AddUserPage = ({ onUserAdded }: AddUserPageProps) => {
                         value={formData.role}
                         onChange={e => setFormData({...formData, role: e.target.value})}
                     >
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                        <option value="editor">Editor</option>
+                        {/* Změnil jsem hodnoty na ROLE_, aby to ladilo se Spring Security */}
+                        <option value="ROLE_USER">User</option>
+                        <option value="ROLE_ADMIN">Admin</option>
+                        <option value="ROLE_EDITOR">Editor</option>
                     </select>
                 </div>
 

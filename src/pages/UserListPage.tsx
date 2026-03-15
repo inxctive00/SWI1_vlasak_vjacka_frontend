@@ -2,16 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserTable from '../components/UserTable';
 
-// 1. Exportujeme interface, aby ho mohl importovat i App.tsx
-export interface User {
-    id: string;
-    username: string;
-    email: string;
-    instruments?: Instrument[];
-}
-
-export type SortableUserKey = keyof Omit<User, 'instruments'>;
-
+// 1. Exportujeme interface pro zbytek aplikace
 export interface Instrument {
     id: string;
     name: string;
@@ -19,24 +10,34 @@ export interface Instrument {
     description: string;
 }
 
-// 2. Definujeme rozhraní pro Props (data, která sem tečou z App.tsx)
+export interface User {
+    id: string;
+    username: string;
+    email: string;
+    role: string;
+    instruments?: Instrument[];
+}
+
+// Typ pro klíče, podle kterých se dá řadit (vše kromě pole instrumentů)
+export type SortableUserKey = keyof Omit<User, 'instruments'>;
+
 interface UserListPageProps {
     users: User[];
     isLoading: boolean;
 }
 
-type UserSortKey = keyof Omit<User, 'instruments'>;
-
-// 3. Komponenta nyní přijímá props v parametru
 const UserListPage = ({ users, isLoading }: UserListPageProps) => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Získáme roli z localStorage, abychom mohli schovat tlačítko pro ne-adminy
+    const currentUserRole = localStorage.getItem('role');
+
     const [sortConfig, setSortConfig] = useState<{ key: SortableUserKey; direction: 'asc' | 'desc' }>({
-        key: 'id',
+        key: 'username',
         direction: 'asc'
     });
 
-    // Funkce pro změnu řazení
     const requestSort = (key: SortableUserKey) => {
         let direction: 'asc' | 'desc' = 'asc';
         if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -45,30 +46,25 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
         setSortConfig({ key, direction });
     };
 
-    // Filtrování dat na základě searchTerm
     const filteredUsers = users.filter(user =>
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Řazení vyfiltrovaných dat
     const sortedUsers = [...filteredUsers].sort((a, b) => {
-        const key = sortConfig.key as UserSortKey; // Explicitní přetypování pro TS
         const direction = sortConfig.direction === 'asc' ? 1 : -1;
+        const key = sortConfig.key;
 
         const aValue = a[key];
         const bValue = b[key];
 
-        // Ošetření případu, kdy by hodnota byla undefined (řeší chybu TS18048)
         if (aValue === undefined) return 1;
         if (bValue === undefined) return -1;
 
-        // Univerzální porovnání pro stringy
         if (typeof aValue === 'string' && typeof bValue === 'string') {
             return aValue.localeCompare(bValue) * direction;
         }
 
-        // Porovnání pro čísla nebo jiné typy
         if (aValue < bValue) return -1 * direction;
         if (aValue > bValue) return 1 * direction;
         return 0;
@@ -77,29 +73,43 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
     return (
         <div className="page">
             <header className="page-header">
-                <h2>List of Users</h2>
+                <h2>Management uživatelů</h2>
                 <div className="header-actions">
-                    <button onClick={() => navigate('/')}>Back</button>
-                    <button className="add-btn" onClick={() => navigate('/users/add')}>+ Add User</button>
+                    <button onClick={() => navigate('/')}>Zpět na Dashboard</button>
+
+                    {/* Tlačítko Add User vidí jen ADMIN */}
+                    {currentUserRole === 'ROLE_ADMIN' && (
+                        <button className="add-btn" onClick={() => navigate('/users/add')}>
+                            + Přidat uživatele
+                        </button>
+                    )}
                 </div>
-                <div className="search-container">
+
+                <div className="search-container" style={{ marginTop: '20px' }}>
                     <input
                         type="text"
-                        placeholder="Search by username or email..."
+                        placeholder="Hledat podle jména nebo emailu..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="search-input"
                         autoFocus
+                        style={{ padding: '8px', width: '300px', borderRadius: '4px', border: '1px solid #ccc' }}
                     />
                     {searchTerm && (
-                        <button className="clear-search" onClick={() => setSearchTerm('')}>×</button>
+                        <button
+                            className="clear-search"
+                            onClick={() => setSearchTerm('')}
+                            style={{ marginLeft: '-25px', border: 'none', background: 'none', cursor: 'pointer' }}
+                        >
+                            ×
+                        </button>
                     )}
                 </div>
             </header>
 
-            <div className="table-container">
+            <div className="table-container" style={{ marginTop: '20px' }}>
                 {isLoading ? (
-                    <p>Loading...</p>
+                    <div className="loader">Načítám data ze serveru...</div>
                 ) : (
                     <UserTable
                         users={sortedUsers}

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Importujeme axios
+import * as React from "react";
 
 interface AddInstrumentPageProps {
-    onRefresh: () => void; // Přidáme prop pro refresh
+    onRefresh: () => void;
 }
 
 const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
@@ -17,28 +19,29 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
-    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSubmitting(true);
         setError('');
 
         try {
-            const response = await fetch(`/api/users/${userId}/instruments`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
+            // Používáme axios.post s typem zpětné vazby (pokud ji nepotřebuješ, stačí axios.post)
+            // URL cesty musí odpovídat tvému Controlleru na backendu
+            await axios.post(`http://localhost:8080/api/users/${userId}/instruments`, formData);
 
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.message || 'Failed to add instrument');
-            }
-
-            // Po úspěchu se vrátíme zpět na detail uživatele
+            // Po úspěchu zavoláme refresh dat a navigujeme zpět
             onRefresh();
             navigate(`/users/${userId}`);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error connecting to server');
+            // TypeScript bezpečné ošetření chyb bez použití 'any'
+            if (axios.isAxiosError(err)) {
+                const message = err.response?.data?.message || err.message || 'Failed to add instrument';
+                setError(message);
+            } else if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('Error connecting to server');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -53,7 +56,7 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
             </header>
 
             <form className="admin-form" onSubmit={handleSubmit}>
-                {error && <div className="error-box">{error}</div>}
+                {error && <div className="error-box" style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
 
                 <div className="form-group">
                     <label>Instrument Name</label>
@@ -61,7 +64,7 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
                         type="text"
                         required
                         value={formData.name}
-                        onChange={e => setFormData({...formData, name: e.target.value})}
+                        onChange={e => setFormData({ ...formData, name: e.target.value })}
                         placeholder="e.g. Fender Stratocaster"
                     />
                 </div>
@@ -72,7 +75,7 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
                         type="number"
                         required
                         value={formData.price}
-                        onChange={e => setFormData({...formData, price: Number(e.target.value)})}
+                        onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
                     />
                 </div>
 
@@ -82,7 +85,7 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
                         className="textbox"
                         rows={4}
                         value={formData.description}
-                        onChange={e => setFormData({...formData, description: e.target.value})}
+                        onChange={e => setFormData({ ...formData, description: e.target.value })}
                         placeholder="Condition, year of manufacture..."
                     />
                 </div>

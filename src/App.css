@@ -5,6 +5,25 @@
   text-align: center;
 }
 
+/* Automatické barvy pro Tmavý režim */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+  }
+
+  .detail-card {
+    background-color: var(--card-bg) !important;
+    color: var(--text-color) !important;
+  }
+
+  .instrument-item {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+  }
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

@@ -32,8 +32,8 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
 
             // 3. Uložíme tento funkční token do localStorage
             localStorage.setItem('token', basicToken);
-            localStorage.setItem('username', response.data.username);
-            localStorage.setItem('role', response.data.role);
+            localStorage.setItem('currentUser', response.data.username);
+            localStorage.setItem('userRole', response.data.role);
 
             setError('');
             onLoginSuccess(response.data);

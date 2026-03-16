@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import HomePage from './pages/HomePage';
 import UserListPage, { type User, type Project } from './pages/UserListPage';
@@ -28,37 +28,49 @@ function App() {
     const [users, setUsers] = useState<User[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [currentUser, setCurrentUser] = useState<string | null>(localStorage.getItem('username'));
-
+    const [currentUser, setCurrentUser] = useState<string | null>(localStorage.getItem('currentUser'));
+    const [userRole, setUserRole] = useState<string | null>(localStorage.getItem('userRole'));
+    users.find(u => u.username === currentUser);
     const addUser = (newUser: User) => {
         setUsers(prev => [...prev, newUser]);
     };
+    const handleAddUserToProject = async (projectId: string, userId: string) => {
+        await axios.post(`/api/projects/${projectId}/add-user/${userId}`);
+        await fetchAllData(); // Toto zajistí, že se refreshnou users i projects
+    };
+
+    const handleRemoveUserFromProject = async (projectId: string, userId: string) => {
+        try {
+            await axios.post(`/api/projects/${projectId}/remove-user/${userId}`);
+            await fetchAllData(); // Refresh dat
+        } catch (error) {
+            console.error("Chyba při odebírání uživatele:", error);
+        }
+    };
 
     // 3. Funkce pro synchronizované stahování všech dat
-    const fetchAllData = async () => {
+    const fetchAllData = useCallback(async () => {
         if (!currentUser) return;
 
         setIsLoading(true);
         try {
-            // Spustíme oba požadavky současně pro vyšší rychlost
             const [usersRes, projectsRes] = await Promise.all([
                 axios.get<User[]>('/api/users/all'),
                 axios.get<Project[]>('/api/projects/all')
             ]);
-
             setUsers(usersRes.data);
             setProjects(projectsRes.data);
         } catch (error) {
-            console.error("Chyba při stahování dat z API:", error);
+            console.error("Chyba při stahování dat:", error);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [currentUser]);
 
     // Spustí se při startu nebo změně uživatele
     useEffect(() => {
         fetchAllData();
-    }, [currentUser]);
+    }, [fetchAllData]);
 
     // 4. Pokud není uživatel přihlášen, ukaž pouze Login
     if (!currentUser) {
@@ -66,6 +78,7 @@ function App() {
             <div className="login-wrapper">
                 <Login onLoginSuccess={(data) => {
                     setCurrentUser(data.username);
+                    setUserRole(data.role);
                     // Token se ukládá v komponentě Login.tsx do localStorage
                 }} />
             </div>
@@ -123,7 +136,15 @@ function App() {
                         <Route path="/projects" element={
                             <ProjectListPage projects={projects} isLoading={isLoading} />
                         } />
-                        <Route path="/projects/:id" element={<ProjectDetailPage projects={projects} />} />
+                        <Route path="/projects/:id" element={
+                            <ProjectDetailPage
+                                projects={projects}
+                                allUsers={users}
+                                onAddUser={handleAddUserToProject}
+                                onRemoveUser={handleRemoveUserFromProject}
+                                userRole={userRole || undefined}
+                            />
+                        } />
                     </Routes>
                 </main>
             </div>

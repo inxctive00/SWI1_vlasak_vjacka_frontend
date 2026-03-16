@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import type { Instrument, User } from './UserListPage';
+import type { User, Instrument, Project } from './UserListPage';
 
 interface UserDetailPageProps {
     users: User[];
@@ -9,96 +9,129 @@ const UserDetailPage = ({ users }: UserDetailPageProps) => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    // Vytáhneme info o přihlášeném uživateli z localStorage pro kontrolu práv
-    const loggedInUsername = localStorage.getItem('username');
-    const loggedInRole = localStorage.getItem('role');
-
-    // Najdeme konkrétního uživatele v datech, která už máme
+    // Najdeme uživatele
     const user = users.find(u => u.id === id);
 
     if (!user) {
         return (
-            <div className="page">
+            <div className="page" style={{ textAlign: 'center', padding: '50px' }}>
                 <h2>Uživatel nenalezen</h2>
-                <button onClick={() => navigate('/users')}>Zpět na seznam</button>
+                <button onClick={() => navigate('/users')} className="submit-btn">Zpět na seznam</button>
             </div>
         );
     }
 
-    // Pomocná proměnná: Může tento uživatel přidávat nástroje? (Admin nebo majitel profilu)
-    const canManageInstruments =
-        loggedInRole === 'ROLE_ADMIN' || loggedInUsername === user.username;
-
     return (
-        <div className="page">
-            <header className="page-header">
-                <div className="header-titles">
-                    <h2>User Profile: {user.username}</h2>
+        <div className="page" style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
+            <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                <div>
+                    <h1 style={{ margin: 0 }}>Profil uživatele</h1>
+                    <p style={{ color: '#666', margin: '5px 0 0' }}>Správa osobních údajů, nástrojů a projektů</p>
                 </div>
-                <div className="header-actions">
-                    <button onClick={() => navigate('/users')}>← Back to List</button>
-
-                    {/* Zobrazíme tlačítko jen pokud má uživatel právo */}
-                    {canManageInstruments && (
-                        <button
-                            className="add-btn"
-                            onClick={() => navigate(`/users/${id}/add-instrument`)}
-                            style={{ backgroundColor: '#28a745', color: 'white', marginLeft: '10px' }}
-                        >
-                            + Add Instrument
-                        </button>
-                    )}
-                </div>
+                <button onClick={() => navigate('/users')} className="refresh-btn">← Zpět do seznamu</button>
             </header>
 
-            <div className="detail-card">
-                <div className="user-avatar" style={{ fontSize: '2rem', background: '#007bff', color: 'white', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                    {user.username.charAt(0).toUpperCase()}
-                </div>
+            <div className="grid-container" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '30px' }}>
 
-                <div className="user-info">
-                    <div className="info-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                        <div className="info-group">
-                            <label style={{ fontWeight: 'bold', display: 'block' }}>Username</label>
-                            <p>{user.username}</p>
+                {/* LEVÝ SLOUPEC: Osobní info */}
+                <aside>
+                    <div className="detail-card" style={{ padding: '25px', position: 'sticky', top: '20px' }}>
+                        <div className="user-avatar" style={{ width: '80px', height: '80px', fontSize: '2rem', margin: '0 auto 20px' }}>
+                            {user.username.charAt(0).toUpperCase()}
                         </div>
-                        <div className="info-group">
-                            <label style={{ fontWeight: 'bold', display: 'block' }}>Email Address</label>
-                            <p>{user.email}</p>
-                        </div>
-                        <div className="info-group">
-                            <label style={{ fontWeight: 'bold', display: 'block' }}>Internal ID</label>
-                            <p><code>{user.id}</code></p>
-                        </div>
-                        <div className="info-group">
-                            <label style={{ fontWeight: 'bold', display: 'block' }}>Role</label>
-                            <span className="badge-role" style={{ padding: '4px 8px', borderRadius: '4px', background: '#e9ecef' }}>
-                                {user.role || 'ROLE_USER'}
-                            </span>
+                        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>{user.username}</h2>
+
+                        <div style={{ borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase' }}>Email</label>
+                                <p style={{ margin: '5px 0', fontWeight: '500' }}>{user.email}</p>
+                            </div>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase' }}>Role</label>
+                                <p style={{ margin: '5px 0' }}>
+                                    <span className={`role-badge ${user.role}`} style={{ display: 'inline-block' }}>{user.role}</span>
+                                </p>
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase' }}>ID Systému</label>
+                                <p style={{ margin: '5px 0', fontSize: '0.75rem', fontFamily: 'monospace', color: '#aaa' }}>{user.id}</p>
+                            </div>
                         </div>
                     </div>
+                </aside>
 
-                    <hr style={{ margin: '30px 0', border: 'none', borderTop: '1px solid #eee' }} />
+                {/* PRAVÝ SLOUPEC: Seznamy */}
+                <main style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
 
-                    <div className="instruments-section">
-                        <h3>Owned Instruments ({user.instruments?.length || 0})</h3>
+                    {/* SEKCE NÁSTROJE */}
+                    <section className="detail-card" style={{ padding: '25px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 style={{ margin: 0 }}>Vybavení a nástroje</h3>
+                            <button
+                                className="add-btn"
+                                onClick={() => navigate(`/users/${user.id}/add-instrument`)}
+                                style={{ padding: '8px 15px', fontSize: '0.9rem' }}
+                            >
+                                + Přidat nástroj
+                            </button>
+                        </div>
+
                         {user.instruments && user.instruments.length > 0 ? (
-                            <ul className="instrument-list" style={{ listStyle: 'none', padding: 0 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {user.instruments.map((inst: Instrument) => (
-                                    <li key={inst.id} className="instrument-item" style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '10px', borderLeft: '4px solid #007bff' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <strong>{inst.name}</strong>
-                                            <span style={{ color: '#28a745', fontWeight: 'bold' }}>{inst.price.toLocaleString()} CZK</span>
+                                    <div key={inst.id} style={{
+                                        padding: '15px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #eee',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        backgroundColor: '#fafafa'
+                                    }}>
+                                        <div>
+                                            <strong style={{ fontSize: '1.1rem', display: 'block' }}>{inst.name || "Nepojmenovaný nástroj"}</strong>
+                                            <small style={{ color: '#888' }}>{inst.description || "Bez popisu"}</small>
                                         </div>
-                                        <p style={{ margin: '10px 0 0', fontStyle: 'italic', color: '#666' }}>{inst.description}</p>
-                                    </li>
+                                        <div style={{ fontWeight: 'bold', color: '#28a745', fontSize: '1.1rem' }}>
+                                            {inst.price?.toLocaleString() || 0} CZK
+                                        </div>
+                                    </div>
                                 ))}
-                            </ul>
+                            </div>
                         ) : (
-                            <p style={{ color: '#888' }}>Tento uživatel zatím nemá žádné nástroje.</p>
+                            <div style={{ textAlign: 'center', padding: '30px', border: '2px dashed #eee', borderRadius: '10px', color: '#aaa' }}>
+                                Uživatel zatím nemá žádné nástroje.
+                            </div>
                         )}
-                    </div>
-                </div>
+                    </section>
+
+                    {/* SEKCE PROJEKTY */}
+                    <section className="detail-card" style={{ padding: '25px' }}>
+                        <h3 style={{ marginBottom: '20px' }}>Aktivní projekty (M:N)</h3>
+                        {user.projects && user.projects.length > 0 ? (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                {user.projects.map((proj: Project) => (
+                                    <div
+                                        key={proj.id}
+                                        onClick={() => navigate(`/projects/${proj.id}`)} // Proklik na detail projektu
+                                        style={{
+                                            padding: '15px',
+                                            borderRadius: '8px',
+                                            backgroundColor: '#eef6ff',
+                                            border: '1px solid #d0e3ff',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <strong style={{ color: '#0056b3' }}>{proj.name}</strong>
+                                        <p style={{ margin: '5px 0 0', fontSize: '0.85rem' }}>{proj.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p style={{ color: '#aaa', fontStyle: 'italic' }}>Tento uživatel není členem žádného projektu.</p>
+                        )}
+                    </section>
+                </main>
             </div>
         </div>
     );

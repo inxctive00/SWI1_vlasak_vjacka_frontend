@@ -10,12 +10,20 @@ export interface Instrument {
     description: string;
 }
 
+export interface Project {
+    id: string;
+    name: string;
+    description: string;
+    members?: User[];
+}
+
 export interface User {
     id: string;
     username: string;
     email: string;
     role: string;
     instruments?: Instrument[];
+    projects?: Project[];
 }
 
 // Typ pro klíče, podle kterých se dá řadit (vše kromě pole instrumentů)

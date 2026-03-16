@@ -1,25 +1,21 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import axios from 'axios'; // Importujeme axios pro interceptor
+import axios from 'axios';
 import HomePage from './pages/HomePage';
-import UserListPage, {type Instrument} from './pages/UserListPage';
+import UserListPage, { type User, type Project } from './pages/UserListPage';
 import UserDetailPage from "./pages/UserDetailPage.tsx";
+import ProjectListPage from "./pages/ProjectListPage.tsx";
 import AddUserPage from "./pages/AddUserPage.tsx";
 import AddInstrumentPage from "./pages/AddInstrumentPage.tsx";
-import Login from "./components/Login.tsx"; // Ujisti se, že cesta sedí
+import ProjectDetailPage from './pages/ProjectDetailPage';
+import Login from "./components/Login.tsx";
 import './App.css';
 
-// 1. Definice rozhraní
-interface User {
-    id: string;
-    username: string;
-    email: string;
-    role: string;
-    instruments?: Instrument[];
-}
+// 1. Nastavení globální URL pro Axios (volitelné, zjednodušuje psaní cest)
+axios.defaults.baseURL = 'http://localhost:8080';
 
-// 2. Nastavení Axios Interceptoru přímo v App.tsx (pro jednoduchost)
-// Toto zajistí, že každý dotaz přes axios ponese náš token
+// 2. Nastavení Axios Interceptoru
+// Každý odchozí požadavek automaticky dostane Basic Auth hlavičku z localStorage
 axios.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -30,6 +26,7 @@ axios.interceptors.request.use((config) => {
 
 function App() {
     const [users, setUsers] = useState<User[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [currentUser, setCurrentUser] = useState<string | null>(localStorage.getItem('username'));
 
@@ -37,64 +34,98 @@ function App() {
         setUsers(prev => [...prev, newUser]);
     };
 
-    // 3. Funkce pro stahování dat přes Axios
-    const fetchUsers = async () => {
+    // 3. Funkce pro synchronizované stahování všech dat
+    const fetchAllData = async () => {
+        if (!currentUser) return;
+
         setIsLoading(true);
         try {
-            // Axios automaticky parsuje JSON, takže stačí response.data
-            const response = await axios.get<User[]>('/api/users/all');
-            setUsers(response.data);
+            // Spustíme oba požadavky současně pro vyšší rychlost
+            const [usersRes, projectsRes] = await Promise.all([
+                axios.get<User[]>('/api/users/all'),
+                axios.get<Project[]>('/api/projects/all')
+            ]);
+
+            setUsers(usersRes.data);
+            setProjects(projectsRes.data);
         } catch (error) {
-            console.error("Chyba při stahování uživatelů:", error);
+            console.error("Chyba při stahování dat z API:", error);
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Spustí se po přihlášení nebo při startu, pokud je uživatel v localStorage
+    // Spustí se při startu nebo změně uživatele
     useEffect(() => {
-        if (currentUser) {
-            fetchUsers();
-        }
+        fetchAllData();
     }, [currentUser]);
 
-    // 4. Podmíněný rendering: Pokud není uživatel, ukaž Login
+    // 4. Pokud není uživatel přihlášen, ukaž pouze Login
     if (!currentUser) {
         return (
             <div className="login-wrapper">
-                <Login onLoginSuccess={(data) => setCurrentUser(data.username)} />
+                <Login onLoginSuccess={(data) => {
+                    setCurrentUser(data.username);
+                    // Token se ukládá v komponentě Login.tsx do localStorage
+                }} />
             </div>
         );
     }
 
-    // 5. Hlavní aplikace (po přihlášení)
+    // 5. Hlavní aplikace s navigací a routováním
     return (
         <Router>
             <div className="app-container">
-                <nav className="main-nav">
-                    <span>Přihlášen jako: <b>{currentUser}</b></span>
-                    <button onClick={() => {
-                        localStorage.clear();
-                        setCurrentUser(null);
-                    }}>
-                        Odhlásit
-                    </button>
+                <nav className="main-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #ddd' }}>
+                    <div className="nav-links" style={{ display: 'flex', gap: '20px' }}>
+                        <Link to="/" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#333' }}>🏠 Dashboard</Link>
+                        <Link to="/users" style={{ textDecoration: 'none', color: '#333' }}>👥 Uživatelé</Link>
+                        <Link to="/projects" style={{ textDecoration: 'none', color: '#333' }}>🎸 Projekty (M:N)</Link>
+                    </div>
+
+                    <div className="nav-user" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <span>Uživatel: <b>{currentUser}</b></span>
+                        <button
+                            className="logout-btn"
+                            style={{ padding: '5px 10px', cursor: 'pointer', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px' }}
+                            onClick={() => {
+                                localStorage.clear();
+                                setCurrentUser(null);
+                                window.location.href = "/"; // Reset aplikace do výchozího stavu
+                            }}
+                        >
+                            Odhlásit
+                        </button>
+                    </div>
                 </nav>
 
-                <Routes>
-                    <Route path="/" element={
-                        <HomePage users={users} fetchUsers={fetchUsers} isLoading={isLoading} />
-                    } />
-                    <Route path="/users" element={
-                        <UserListPage users={users} isLoading={isLoading} />
-                    } />
-                    <Route path="/users/:id" element={<UserDetailPage users={users} />} />
-                    <Route path="/users/add" element={<AddUserPage onUserAdded={addUser} />} />
-                    <Route
-                        path="/users/:userId/add-instrument"
-                        element={<AddInstrumentPage onRefresh={fetchUsers} />}
-                    />
-                </Routes>
+                <main className="content" style={{ padding: '20px' }}>
+                    <Routes>
+                        {/* Úvodní stránka s přehledem */}
+                        <Route path="/" element={
+                            <HomePage users={users} fetchUsers={fetchAllData} isLoading={isLoading} />
+                        } />
+
+                        {/* Správa uživatelů */}
+                        <Route path="/users" element={
+                            <UserListPage users={users} isLoading={isLoading} />
+                        } />
+                        <Route path="/users/:id" element={<UserDetailPage users={users} />} />
+                        <Route path="/users/add" element={<AddUserPage onUserAdded={addUser} />} />
+
+                        {/* Nástroje (1:N) */}
+                        <Route
+                            path="/users/:userId/add-instrument"
+                            element={<AddInstrumentPage onRefresh={fetchAllData} />}
+                        />
+
+                        {/* Projekty (M:N) */}
+                        <Route path="/projects" element={
+                            <ProjectListPage projects={projects} isLoading={isLoading} />
+                        } />
+                        <Route path="/projects/:id" element={<ProjectDetailPage projects={projects} />} />
+                    </Routes>
+                </main>
             </div>
         </Router>
     );

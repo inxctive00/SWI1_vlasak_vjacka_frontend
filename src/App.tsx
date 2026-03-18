@@ -1,167 +1,154 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import HomePage from './pages/HomePage';
+import UserListPage, { type User, type Project } from './pages/UserListPage';
+import UserDetailPage from "./pages/UserDetailPage.tsx";
+import ProjectListPage from "./pages/ProjectListPage.tsx";
+import AddUserPage from "./pages/AddUserPage.tsx";
+import AddInstrumentPage from "./pages/AddInstrumentPage.tsx";
+import ProjectDetailPage from './pages/ProjectDetailPage';
+import Login from "./components/Login.tsx";
+import './App.css';
 
-interface User {
-    id: string;
-    username: string;
-    email: string;
-    // Přidejte další pole, která vaše API vrací
-}
+// 1. Nastavení globální URL pro Axios (volitelné, zjednodušuje psaní cest)
+axios.defaults.baseURL = 'http://localhost:8080';
+
+// 2. Nastavení Axios Interceptoru
+// Každý odchozí požadavek automaticky dostane Basic Auth hlavičku z localStorage
+axios.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Basic ${token}`;
+    }
+    return config;
+});
 
 function App() {
-    const [users, setUsers] = useState<User[]>([])
-    const [isLoading, setIsLoading] = useState(false)
-    const [errorMessage, setErrorMessage] = useState('')
-    // Stav pro přepínání stránek: 'home' nebo 'users'
-    const [currentPage, setCurrentPage] = useState('home')
-
-    const [searchTerm, setSearchTerm] = useState('');
-
-    // 1. Definujeme typ pro klíče, které lze řadit
-    type UserSortKey = keyof User;
-
-    // 2. Upravíme stav, aby nepoužíval obecný string
-    const [sortConfig, setSortConfig] = useState<{ key: UserSortKey; direction: 'asc' | 'desc' }>({
-        key: 'id',
-        direction: 'asc'
-    });
-
-    const requestSort = (key: UserSortKey) => {
-        let direction: 'asc' | 'desc' = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
+    const [users, setUsers] = useState<User[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentUser, setCurrentUser] = useState<string | null>(localStorage.getItem('currentUser'));
+    const [userRole, setUserRole] = useState<string | null>(localStorage.getItem('userRole'));
+    users.find(u => u.username === currentUser);
+    const addUser = (newUser: User) => {
+        setUsers(prev => [...prev, newUser]);
+    };
+    const handleAddUserToProject = async (projectId: string, userId: string) => {
+        await axios.post(`/api/projects/${projectId}/add-user/${userId}`);
+        await fetchAllData(); // Toto zajistí, že se refreshnou users i projects
     };
 
-    // 1. Nejdříve vyfiltrujeme uživatele podle jména (případně i e-mailu)
-    const filteredUsers = users.filter(user =>
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    // 2. Řadíme filtrované uživatele
-    const sortedUsers = [...filteredUsers].sort((a, b) => {
-        const key = sortConfig.key;
-        const direction = sortConfig.direction === 'asc' ? 1 : -1;
-
-        const aValue = a[key];
-        const bValue = b[key];
-
-        // Univerzální porovnání pro stringy i čísla
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-            return aValue.localeCompare(bValue) * direction;
-        }
-
-        // Fallback pro ostatní typy (např. pokud by id bylo číslo)
-        if (aValue < bValue) return -1 * direction;
-        if (aValue > bValue) return 1 * direction;
-        return 0;
-    });
-
-    const fetchUsers = async () => {
-        setIsLoading(true)
-        setErrorMessage('')
+    const handleRemoveUserFromProject = async (projectId: string, userId: string) => {
         try {
-            const response = await fetch('/api/users/all')
-            if (!response.ok) throw new Error(`Status: ${response.status}`)
-
-            const data = await response.json() // Předpokládáme, že API vrací JSON pole
-            setUsers(data)
+            await axios.post(`/api/projects/${projectId}/remove-user/${userId}`);
+            await fetchAllData(); // Refresh dat
         } catch (error) {
-            setErrorMessage(error instanceof Error ? error.message : 'Unknown error')
-        } finally {
-            setIsLoading(false)
+            console.error("Chyba při odebírání uživatele:", error);
         }
-    }
+    };
 
+    // 3. Funkce pro synchronizované stahování všech dat
+    const fetchAllData = useCallback(async () => {
+        if (!currentUser) return;
+
+        setIsLoading(true);
+        try {
+            const [usersRes, projectsRes] = await Promise.all([
+                axios.get<User[]>('/api/users/all'),
+                axios.get<Project[]>('/api/projects/all')
+            ]);
+            setUsers(usersRes.data);
+            setProjects(projectsRes.data);
+        } catch (error) {
+            console.error("Chyba při stahování dat:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentUser]);
+
+    // Spustí se při startu nebo změně uživatele
     useEffect(() => {
-        fetchUsers()
-    }, [])
+        fetchAllData();
+    }, [fetchAllData]);
 
-    // ... ponechte veškerou logiku nahoře (useEffect, sorting, atd.) ...
-
-    // Místo definování funkcí UsersTable a HomePage
-    // to teď vykreslíme podmíněně přímo v returnu
-
-    if (currentPage === 'home') {
+    // 4. Pokud není uživatel přihlášen, ukaž pouze Login
+    if (!currentUser) {
         return (
-            <div className="page">
-                <header className="page-header">
-                    <p>
-                        <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('users'); }}>
-                            List of users
-                        </a>
-                    </p>
-                    <p>GET /api/test</p>
-                </header>
-                <div className="controls">
-                    <button type="button" onClick={fetchUsers} disabled={isLoading}>
-                        {isLoading ? 'Loading...' : 'Refresh'}
-                    </button>
-                </div>
-                <textarea
-                    className="textbox"
-                    value={JSON.stringify(users, null, 2)}
-                    readOnly
-                    rows={10}
-                />
+            <div className="login-wrapper">
+                <Login onLoginSuccess={(data) => {
+                    setCurrentUser(data.username);
+                    setUserRole(data.role);
+                    // Token se ukládá v komponentě Login.tsx do localStorage
+                }} />
             </div>
         );
     }
 
-    // Pokud nejsme na home, jsme na 'users'
+    // 5. Hlavní aplikace s navigací a routováním
     return (
-        <div className="page">
-            <header className="page-header">
-                <h2>List of Users</h2>
-                <button onClick={() => setCurrentPage('home')}>Back to Home</button>
-                <div className="search-container">
-                    <input
-                        type="text"
-                        placeholder="Search by name or email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                        autoFocus // Kurzor tam bude hned při otevření stránky
-                    />
-                    {searchTerm && (
-                        <button className="clear-search" onClick={() => setSearchTerm('')}>×</button>
-                    )}
-                </div>
-            </header>
-            <div className="table-container">
-                {isLoading ? <p>Loading users...</p> : (
-                    <table className="user-table">
-                        <thead>
-                        <tr>
-                            <th onClick={() => requestSort('id')} className="sortable-th">
-                                ID {sortConfig.key === 'id' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
-                            </th>
-                            <th onClick={() => requestSort('username')} className="sortable-th">
-                                Username {sortConfig.key === 'username' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
-                            </th>
-                            <th onClick={() => requestSort('email')} className="sortable-th">
-                                Email {sortConfig.key === 'email' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {sortedUsers.map(user => (
-                            <tr key={user.id}>
-                                <td><span className="uuid-cell" title={user.id}>{user.id.substring(0, 8)}...</span></td>
-                                <td>{user.username}</td>
-                                <td>{user.email}</td>
-                                <td>
-                                    <span className="badge-active">Active</span>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                )}
-                {errorMessage && <p className="error">{errorMessage}</p>}
+        <Router>
+            <div className="app-container">
+                <nav className="main-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #ddd' }}>
+                    <div className="nav-links" style={{ display: 'flex', gap: '20px' }}>
+                        <Link to="/" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#333' }}>🏠 Dashboard</Link>
+                        <Link to="/users" style={{ textDecoration: 'none', color: '#333' }}>👥 Uživatelé</Link>
+                        <Link to="/projects" style={{ textDecoration: 'none', color: '#333' }}>🎸 Projekty (M:N)</Link>
+                    </div>
+
+                    <div className="nav-user" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <span>Uživatel: <b>{currentUser}</b></span>
+                        <button
+                            className="logout-btn"
+                            style={{ padding: '5px 10px', cursor: 'pointer', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px' }}
+                            onClick={() => {
+                                localStorage.clear();
+                                setCurrentUser(null);
+                                window.location.href = "/"; // Reset aplikace do výchozího stavu
+                            }}
+                        >
+                            Odhlásit
+                        </button>
+                    </div>
+                </nav>
+
+                <main className="content" style={{ padding: '20px' }}>
+                    <Routes>
+                        {/* Úvodní stránka s přehledem */}
+                        <Route path="/" element={
+                            <HomePage users={users} fetchUsers={fetchAllData} isLoading={isLoading} />
+                        } />
+
+                        {/* Správa uživatelů */}
+                        <Route path="/users" element={
+                            <UserListPage users={users} isLoading={isLoading} />
+                        } />
+                        <Route path="/users/:id" element={<UserDetailPage users={users} />} />
+                        <Route path="/users/add" element={<AddUserPage onUserAdded={addUser} />} />
+
+                        {/* Nástroje (1:N) */}
+                        <Route
+                            path="/users/:userId/add-instrument"
+                            element={<AddInstrumentPage onRefresh={fetchAllData} />}
+                        />
+
+                        {/* Projekty (M:N) */}
+                        <Route path="/projects" element={
+                            <ProjectListPage projects={projects} isLoading={isLoading} />
+                        } />
+                        <Route path="/projects/:id" element={
+                            <ProjectDetailPage
+                                projects={projects}
+                                allUsers={users}
+                                onAddUser={handleAddUserToProject}
+                                onRemoveUser={handleRemoveUserFromProject}
+                                userRole={userRole || undefined}
+                            />
+                        } />
+                    </Routes>
+                </main>
             </div>
-        </div>
+        </Router>
     );
 }
 

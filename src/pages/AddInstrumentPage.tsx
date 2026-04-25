@@ -27,7 +27,7 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
         try {
             // Používáme axios.post s typem zpětné vazby (pokud ji nepotřebuješ, stačí axios.post)
             // URL cesty musí odpovídat tvému Controlleru na backendu
-            await axios.post(`http://localhost:8080/api/users/${userId}/instruments`, formData);
+            await axios.post(`/api/users/${userId}/instruments`, formData);
 
             // Po úspěchu zavoláme refresh dat a navigujeme zpět
             onRefresh();

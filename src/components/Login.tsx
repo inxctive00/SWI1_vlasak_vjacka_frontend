@@ -26,12 +26,9 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
                 password
             });
 
-            // 2. KLÍČOVÁ ZMĚNA: Vytvoříme Basic Auth token z jména a hesla
-            // btoa() zakóduje "username:password" do Base64, což Spring Security vyžaduje
-            const basicToken = window.btoa(`${username}:${password}`);
-
-            // 3. Uložíme tento funkční token do localStorage
-            localStorage.setItem('token', basicToken);
+            // 2. KLÍČOVÁ ZMĚNA: Použijeme JWT token z odpovědi backendu
+            // Backend vrací JWT token v response.data.token
+            localStorage.setItem('token', response.data.token);
             localStorage.setItem('currentUser', response.data.username);
             localStorage.setItem('userRole', response.data.role);
 
@@ -53,8 +50,9 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
             <h2>Přihlášení</h2>
             <form onSubmit={handleLogin}>
                 <div style={{ marginBottom: '10px' }}>
-                    <label style={{ display: 'block' }}>Jméno:</label>
+                    <label htmlFor="username" style={{ display: 'block' }}>Jméno:</label>
                     <input
+                        id="username"
                         type="text"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
@@ -63,8 +61,9 @@ const Login = ({ onLoginSuccess }: LoginProps) => {
                     />
                 </div>
                 <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block' }}>Heslo:</label>
+                    <label htmlFor="password" style={{ display: 'block' }}>Heslo:</label>
                     <input
+                        id="password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}

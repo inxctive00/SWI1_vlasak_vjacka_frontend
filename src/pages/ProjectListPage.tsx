@@ -8,6 +8,7 @@ interface ProjectListPageProps {
 
 const ProjectListPage = ({ projects, isLoading }: ProjectListPageProps) => {
     const navigate = useNavigate();
+    const currentUserRole = localStorage.getItem('userRole');
 
     return (
         <div className="page">
@@ -16,7 +17,12 @@ const ProjectListPage = ({ projects, isLoading }: ProjectListPageProps) => {
                     <h2>Hudební Projekty</h2>
                     <p>Přehled kapel a jejich obsazení</p>
                 </div>
-                <button onClick={() => navigate('/')} className="refresh-btn">Zpět na Dashboard</button>
+                <div className="header-actions">
+                    {currentUserRole === 'ROLE_ADMIN' && (
+                        <button onClick={() => navigate('/projects/add')} className="add-btn">+ Přidat projekt</button>
+                    )}
+                    <button onClick={() => navigate('/')} className="refresh-btn">Zpět na Dashboard</button>
+                </div>
             </header>
 
             {isLoading ? (

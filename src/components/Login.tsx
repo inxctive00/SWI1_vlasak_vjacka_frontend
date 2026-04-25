@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import axios from 'axios';
 
-interface LoginResponse {
+export interface LoginResponse {
     message: string;
     username: string;
     role: string;

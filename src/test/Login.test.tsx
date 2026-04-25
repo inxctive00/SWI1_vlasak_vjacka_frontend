@@ -1,19 +1,24 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import Login from '../components/Login';
+import Login, { type LoginResponse } from '../components/Login';
 import type { MockedFunction } from 'vitest';
 
 // Mock axios
 vi.mock('axios');
 const mockedAxios = vi.mocked(axios);
 
+// Definice typu pro mockovanou funkci na základě interfacu z komponenty
+type OnLoginSuccessFn = (data: LoginResponse) => void;
+
 describe('Login Component', () => {
-  let mockOnLoginSuccess: MockedFunction<any>;
+  // Mock s konkrétním typem místo any
+  let mockOnLoginSuccess: MockedFunction<OnLoginSuccessFn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOnLoginSuccess = vi.fn();
+    // Inicializace mocku s přetypováním
+    mockOnLoginSuccess = vi.fn() as MockedFunction<OnLoginSuccessFn>;
   });
 
   it('renders login form', () => {
@@ -47,6 +52,7 @@ describe('Login Component', () => {
         username: 'testuser',
         password: 'password'
       });
+      // TypeScript nyní ví, že mockResponse.data odpovídá LoginResponse
       expect(mockOnLoginSuccess).toHaveBeenCalledWith(mockResponse.data);
     });
   });

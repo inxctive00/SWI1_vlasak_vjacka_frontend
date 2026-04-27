@@ -10,16 +10,17 @@ import AddInstrumentPage from "./pages/AddInstrumentPage.tsx";
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import Login from "./components/Login.tsx";
 import './App.css';
+import AddProjectPage from './pages/AddProjectPage';
 
 // 1. Nastavení globální URL pro Axios (volitelné, zjednodušuje psaní cest)
 axios.defaults.baseURL = 'http://localhost:8080';
 
 // 2. Nastavení Axios Interceptoru
-// Každý odchozí požadavek automaticky dostane Basic Auth hlavičku z localStorage
+// Každý odchozí požadavek automaticky dostane Bearer token hlavičku z localStorage
 axios.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
-        config.headers.Authorization = `Basic ${token}`;
+        config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
 });
@@ -33,6 +34,9 @@ function App() {
     users.find(u => u.username === currentUser);
     const addUser = (newUser: User) => {
         setUsers(prev => [...prev, newUser]);
+    };
+    const addProject = (newProject: Project) => {
+        setProjects(prev => [...prev, newProject]);
     };
     const handleAddUserToProject = async (projectId: string, userId: string) => {
         await axios.post(`/api/projects/${projectId}/add-user/${userId}`);
@@ -136,6 +140,7 @@ function App() {
                         <Route path="/projects" element={
                             <ProjectListPage projects={projects} isLoading={isLoading} />
                         } />
+                        <Route path="/projects/add" element={<AddProjectPage onProjectAdded={addProject} allUsers={users} />} />
                         <Route path="/projects/:id" element={
                             <ProjectDetailPage
                                 projects={projects}

@@ -15,7 +15,7 @@ interface HomePageProps {
 const HomePage = ({ users, fetchUsers, isLoading }: HomePageProps) => {
     // Můžeme si vytáhnout info o přihlášeném uživateli z localStorage
     const currentUsername = localStorage.getItem('username');
-    const currentUserRole = localStorage.getItem('role');
+    const currentUserRole = localStorage.getItem('userRole');
 
     return (
         <div className="page">
@@ -32,7 +32,7 @@ const HomePage = ({ users, fetchUsers, isLoading }: HomePageProps) => {
             <main className="content">
                 <section className="api-info">
                     <h3>System Overview</h3>
-                    <p>Endpoint: <code>GET /api/users/all</code></p>
+                    <p><Link to="/users">List of users</Link></p>
                     <p>Current Users Count: <strong>{users.length}</strong></p>
 
                     <div className="controls">

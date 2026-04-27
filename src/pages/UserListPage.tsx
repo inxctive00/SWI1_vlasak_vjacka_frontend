@@ -39,7 +39,7 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
     const [searchTerm, setSearchTerm] = useState('');
 
     // Získáme roli z localStorage, abychom mohli schovat tlačítko pro ne-adminy
-    const currentUserRole = localStorage.getItem('role');
+    const currentUserRole = localStorage.getItem('userRole');
 
     const [sortConfig, setSortConfig] = useState<{ key: SortableUserKey; direction: 'asc' | 'desc' }>({
         key: 'username',

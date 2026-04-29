@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserTable from '../components/UserTable';
+import '/src/pages-styles/UserListPage.css'; // Import the new CSS file
 
-// 1. Exportujeme interface pro zbytek aplikace
 export interface Instrument {
     id: string;
     name: string;
@@ -26,7 +26,6 @@ export interface User {
     projects?: Project[];
 }
 
-// Typ pro klíče, podle kterých se dá řadit (vše kromě pole instrumentů)
 export type SortableUserKey = keyof Omit<User, 'instruments'>;
 
 interface UserListPageProps {
@@ -38,7 +37,6 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Získáme roli z localStorage, abychom mohli schovat tlačítko pro ne-adminy
     const currentUserRole = localStorage.getItem('userRole');
 
     const [sortConfig, setSortConfig] = useState<{ key: SortableUserKey; direction: 'asc' | 'desc' }>({
@@ -78,22 +76,30 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
         return 0;
     });
 
+    const formattedUsers = sortedUsers.map(user => ({
+        ...user,
+        role: user.role ? user.role.replace('ROLE_', '') : user.role
+    }));
+
     return (
         <div className="page">
-            <header className="page-header">
-                <h2>Management uživatelů</h2>
-                <div className="header-actions">
-                    <button onClick={() => navigate('/')}>Zpět na Dashboard</button>
-
-                    {/* Tlačítko Add User vidí jen ADMIN */}
-                    {currentUserRole === 'ROLE_ADMIN' && (
-                        <button className="add-btn" onClick={() => navigate('/users/add')}>
-                            + Přidat uživatele
+            <header className="user-list-header">
+                <div className="header-top-row">
+                    <h2 className="header-title">Management uživatelů</h2>
+                    <div className="header-actions">
+                        <button className="btn-secondary" onClick={() => navigate('/')}>
+                            Zpět na úvodní stránku
                         </button>
-                    )}
+
+                        {currentUserRole === 'ROLE_ADMIN' && (
+                            <button className="btn-primary" onClick={() => navigate('/users/add')}>
+                                + Přidat uživatele
+                            </button>
+                        )}
+                    </div>
                 </div>
 
-                <div className="search-container" style={{ marginTop: '20px' }}>
+                <div className="search-container">
                     <input
                         type="text"
                         placeholder="Hledat podle jména nebo emailu..."
@@ -101,13 +107,11 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="search-input"
                         autoFocus
-                        style={{ padding: '8px', width: '300px', borderRadius: '4px', border: '1px solid #ccc' }}
                     />
                     {searchTerm && (
                         <button
                             className="clear-search"
                             onClick={() => setSearchTerm('')}
-                            style={{ marginLeft: '-25px', border: 'none', background: 'none', cursor: 'pointer' }}
                         >
                             ×
                         </button>
@@ -115,12 +119,12 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
                 </div>
             </header>
 
-            <div className="table-container" style={{ marginTop: '20px' }}>
+            <div className="user-table-wrapper">
                 {isLoading ? (
                     <div className="loader">Načítám data ze serveru...</div>
                 ) : (
                     <UserTable
-                        users={sortedUsers}
+                        users={formattedUsers}
                         sortConfig={sortConfig}
                         onRequestSort={requestSort}
                     />

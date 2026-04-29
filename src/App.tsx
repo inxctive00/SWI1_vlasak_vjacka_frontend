@@ -12,11 +12,10 @@ import Login from "./components/Login.tsx";
 import './App.css';
 import AddProjectPage from './pages/AddProjectPage';
 
-// 1. Nastavení globální URL pro Axios (volitelné, zjednodušuje psaní cest)
+// 1. GLOBAL AXIOS CONFIG: Sets base URL for all API requests
 axios.defaults.baseURL = 'http://localhost:8080';
 
-// 2. Nastavení Axios Interceptoru
-// Každý odchozí požadavek automaticky dostane Bearer token hlavičku z localStorage
+// 2. AXIOS INTERCEPTOR: Automatically attaches JWT token from localStorage to every outgoing request
 axios.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -26,35 +25,35 @@ axios.interceptors.request.use((config) => {
 });
 
 function App() {
+    // STATE MANAGEMENT: Holds app data and current user session info
     const [users, setUsers] = useState<User[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [currentUser, setCurrentUser] = useState<string | null>(localStorage.getItem('currentUser'));
     const [userRole, setUserRole] = useState<string | null>(localStorage.getItem('userRole'));
-    users.find(u => u.username === currentUser);
-    const addUser = (newUser: User) => {
-        setUsers(prev => [...prev, newUser]);
-    };
-    const addProject = (newProject: Project) => {
-        setProjects(prev => [...prev, newProject]);
-    };
+
+    // STATE UPDATERS: Append new items locally to avoid immediate refetching
+    const addUser = (newUser: User) => setUsers(prev => [...prev, newUser]);
+    const addProject = (newProject: Project) => setProjects(prev => [...prev, newProject]);
+
+    // API ACTIONS: Handle adding/removing users from projects and refresh state
     const handleAddUserToProject = async (projectId: string, userId: string) => {
         await axios.post(`/api/projects/${projectId}/add-user/${userId}`);
-        await fetchAllData(); // Toto zajistí, že se refreshnou users i projects
+        await fetchAllData();
     };
 
     const handleRemoveUserFromProject = async (projectId: string, userId: string) => {
         try {
             await axios.post(`/api/projects/${projectId}/remove-user/${userId}`);
-            await fetchAllData(); // Refresh dat
+            await fetchAllData();
         } catch (error) {
             console.error("Chyba při odebírání uživatele:", error);
         }
     };
 
-    // 3. Funkce pro synchronizované stahování všech dat
+    // 3. DATA FETCHING: Retrieves all users and projects concurrently
     const fetchAllData = useCallback(async () => {
-        if (!currentUser) return;
+        if (!currentUser) return; // Only fetch if logged in
 
         setIsLoading(true);
         try {
@@ -71,75 +70,61 @@ function App() {
         }
     }, [currentUser]);
 
-    // Spustí se při startu nebo změně uživatele
+    // TRIGGER FETCH: Runs on mount or when currentUser logs in
     useEffect(() => {
         fetchAllData();
     }, [fetchAllData]);
 
-    // 4. Pokud není uživatel přihlášen, ukaž pouze Login
+    // 4. AUTH GUARD: Render login screen if no user is authenticated
     if (!currentUser) {
         return (
             <div className="login-wrapper">
                 <Login onLoginSuccess={(data) => {
                     setCurrentUser(data.username);
                     setUserRole(data.role);
-                    // Token se ukládá v komponentě Login.tsx do localStorage
                 }} />
             </div>
         );
     }
 
-    // 5. Hlavní aplikace s navigací a routováním
+    // 5. MAIN APP ROUTING: Rendered only for authenticated users
     return (
         <Router>
             <div className="app-container">
-                <nav className="main-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #ddd' }}>
-                    <div className="nav-links" style={{ display: 'flex', gap: '20px' }}>
-                        <Link to="/" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#333' }}>🏠 Dashboard</Link>
-                        <Link to="/users" style={{ textDecoration: 'none', color: '#333' }}>👥 Uživatelé</Link>
-                        <Link to="/projects" style={{ textDecoration: 'none', color: '#333' }}>🎸 Projekty (M:N)</Link>
+                <nav className="main-nav">
+                    <div className="nav-links">
+                        <Link to="/">Úvodní stránka</Link>
+                        <Link to="/users">Správa uživatelů</Link>
+                        <Link to="/projects">Dostupné projekty</Link>
                     </div>
 
-                    <div className="nav-user" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <span>Uživatel: <b>{currentUser}</b></span>
+                    <div className="nav-user">
+                        <span>Příhlášen jako: <b>{currentUser}</b></span>
                         <button
                             className="logout-btn"
-                            style={{ padding: '5px 10px', cursor: 'pointer', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px' }}
                             onClick={() => {
                                 localStorage.clear();
-                                setCurrentUser(null);
-                                window.location.href = "/"; // Reset aplikace do výchozího stavu
+                                setCurrentUser(null); // Triggers re-render back to <Login />
                             }}
                         >
-                            Odhlásit
+                            Odhlásit se
                         </button>
                     </div>
                 </nav>
 
-                <main className="content" style={{ padding: '20px' }}>
+                <main className="content">
                     <Routes>
-                        {/* Úvodní stránka s přehledem */}
-                        <Route path="/" element={
-                            <HomePage users={users} fetchUsers={fetchAllData} isLoading={isLoading} />
-                        } />
+                        {/* Dashboard */}
+                        <Route path="/" element={<HomePage users={users} fetchUsers={fetchAllData} isLoading={isLoading} />} />
 
-                        {/* Správa uživatelů */}
-                        <Route path="/users" element={
-                            <UserListPage users={users} isLoading={isLoading} />
-                        } />
+                        {/* User Management */}
+                        <Route path="/users" element={<UserListPage users={users} isLoading={isLoading} />} />
                         <Route path="/users/:id" element={<UserDetailPage users={users} />} />
                         <Route path="/users/add" element={<AddUserPage onUserAdded={addUser} />} />
+                        <Route path="/users/:userId/add-instrument" element={<AddInstrumentPage onRefresh={fetchAllData} />} />
 
-                        {/* Nástroje (1:N) */}
-                        <Route
-                            path="/users/:userId/add-instrument"
-                            element={<AddInstrumentPage onRefresh={fetchAllData} />}
-                        />
-
-                        {/* Projekty (M:N) */}
-                        <Route path="/projects" element={
-                            <ProjectListPage projects={projects} isLoading={isLoading} />
-                        } />
+                        {/* Project Management */}
+                        <Route path="/projects" element={<ProjectListPage projects={projects} isLoading={isLoading} />} />
                         <Route path="/projects/add" element={<AddProjectPage onProjectAdded={addProject} allUsers={users} />} />
                         <Route path="/projects/:id" element={
                             <ProjectDetailPage

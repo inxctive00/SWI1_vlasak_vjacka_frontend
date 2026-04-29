@@ -1,291 +1,385 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* =========================================
+   Global Resets & Base Variables
+   ========================================= */
+:root {
+  --bg-main: #f4f7f9;
+  --bg-surface: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --success: #10b981;
+  --success-hover: #059669;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
 }
 
-/* Automatické barvy pro Tmavý režim */
+/* =========================================
+   Layout & Navigation
+   ========================================= */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+.nav-links a:hover {
+  background-color: #f1f5f9;
+  color: var(--primary);
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.nav-user b {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.logout-btn {
+  padding: 8px 16px;
+  cursor: pointer;
+  background-color: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background-color: var(--danger);
+  color: white;
+}
+
+.content {
+  padding: 0 32px 32px 32px;
+}
+
+/* =========================================
+   Dark Mode Refinements
+   ========================================= */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-color: #121212;
-    --text-color: #e0e0e0;
-    --card-bg: #1e1e1e;
+    --bg-main: #0f172a;
+    --bg-surface: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
   }
 
-  .detail-card {
-    background-color: var(--card-bg) !important;
-    color: var(--text-color) !important;
-  }
-
-  .instrument-item {
-    background-color: #2d2d2d !important;
-    color: #ffffff !important;
-  }
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+  .user-table th { background-color: #1e293b; }
+  .user-table tbody tr:hover { background-color: #334155; }
+  .uuid-text { background: #334155; color: #cbd5e1; }
+  .nav-links a:hover { background-color: #334155; }
+  .detail-card, .admin-form, .user-table, .table-container {
+    background-color: var(--bg-surface) !important;
+    border-color: var(--border-color);
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-/* Kontejner pro tabulku s horizontálním skrollováním pro mobily */
+/* =========================================
+   Tables & Data Display
+   ========================================= */
 .table-container {
   width: 100%;
   overflow-x: auto;
-  margin: 20px 0;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  margin: 24px 0;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
 }
 
 .user-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: white;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: #333;
+  text-align: left;
 }
 
-/* Hlavička tabulky */
 .user-table th,
 .user-table td {
-  padding: 14px 16px;
-  text-align: center; /* Vycentruje text horizontálně */
-  vertical-align: middle; /* Vycentruje text vertikálně */
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.user-table th {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #f8fafc;
 }
 
 .sortable-th {
   cursor: pointer;
-  user-select: none;
-  transition: background-color 0.2s;
-  position: relative;
-  white-space: nowrap;
+  transition: color 0.2s;
 }
 
 .sortable-th:hover {
-  background-color: #eceef1 !important;
-  color: #007bff;
+  color: var(--primary);
 }
 
-/* Efekt při najetí myší na řádek */
+.user-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.user-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
 .user-table tbody tr:hover {
-  background-color: #f1f4f9;
-  transition: background-color 0.2s ease;
-}
-
-/* Styling pro ID (může být výraznější) */
-.user-table td:first-child {
-  font-weight: bold;
-  color: #6c757d;
-  width: 60px;
+  background-color: #f1f5f9;
 }
 
 .uuid-text {
-  background: #f0f0f0;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  color: #666;
-  cursor: help; /* Naznačí, že po najetí myší uvidí uživatel v 'title' celé ID */
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: help;
 }
 
-/* Aby tabulka kvůli UUID "neustřelila" do šířky */
-.user-table {
-  table-layout: auto;
-}
-
-/* Styling pro e-mail */
-.user-table td:last-child {
-  color: #007bff;
-}
-
-/* Responzivita - na malých obrazovkách zmenšíme písmo */
-@media (max-width: 600px) {
-  .user-table th, .user-table td {
-    padding: 10px;
-    font-size: 0.8rem;
-  }
-}
-
+/* =========================================
+   Search
+   ========================================= */
 .search-container {
   position: relative;
-  margin-bottom: 20px;
-  max-width: 400px; /* Aby nebylo vyhledávání přes celou šířku */
+  margin-bottom: 24px;
+  max-width: 400px;
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 40px 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  box-sizing: border-box;
+  padding: 12px 40px 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  outline: none;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  transition: all 0.2s;
 }
 
 .search-input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .clear-search {
   position: absolute;
-  right: 10px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   font-size: 1.2rem;
-  color: #999;
+  color: var(--text-secondary);
   cursor: pointer;
-  padding: 5px;
 }
 
 .clear-search:hover {
-  color: #333;
+  color: var(--text-primary);
 }
 
-/* Styl pro hlášku, když se nic nenajde */
 .no-results {
   text-align: center;
-  padding: 40px;
-  color: #666;
-  font-style: italic;
+  padding: 48px;
+  color: var(--text-secondary);
 }
 
-.user-link { color: #007bff; text-decoration: none; } .user-link:hover { text-decoration: underline; }
+/* =========================================
+   User Details & Forms
+   ========================================= */
+.user-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.user-link:hover {
+  text-decoration: underline;
+}
 
 .detail-card {
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-md);
   display: flex;
-  gap: 30px;
+  gap: 32px;
   max-width: 600px;
-  margin: 20px 0;
+  margin: 24px 0;
+  border: 1px solid var(--border-color);
 }
 
 .user-avatar {
   width: 80px;
   height: 80px;
-  background: #007bff;
+  background: var(--primary);
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  font-weight: bold;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 
 .info-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .info-group label {
   display: block;
-  font-size: 0.8rem;
-  color: #888;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  margin-bottom: 4px;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  font-weight: 600;
 }
 
 .info-group p {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   margin: 0;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .badge-active {
-  background: #e6fcf5;
-  color: #0ca678;
+  background: #d1fae5;
+  color: #065f46;
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: bold;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
+/* Form Styles */
 .admin-form {
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  background: var(--bg-surface);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   max-width: 450px;
-  margin-top: 20px;
+  margin-top: 24px;
+  border: 1px solid var(--border-color);
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: 600;
-  color: #444;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
 }
 
-.form-group input, .form-group select {
+.form-group input,
+.form-group select {
+  box-sizing: border-box;
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: var(--bg-surface);
 }
 
 .submit-btn {
   width: 100%;
-  background-color: #28a745;
+  background-color: var(--success);
   color: white;
-  padding: 12px;
+  padding: 14px;
   border: none;
-  border-radius: 6px;
-  font-weight: bold;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 16px;
+  transition: background-color 0.2s;
 }
 
 .submit-btn:hover {
-  background-color: #218838;
+  background-color: var(--success-hover);
 }
 
 .error-box {
-  background: #fff5f5;
-  color: #c92a2a;
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  border: 1px solid #ffc9c9;
+  background: #fef2f2;
+  color: var(--danger);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  border: 1px solid #fecaca;
+  font-size: 0.9rem;
 }

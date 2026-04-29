@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios'; // Importujeme axios
+import {useParams, useNavigate} from 'react-router-dom';
+import axios from 'axios';
 import * as React from "react";
+import '/src/pages-styles/AddInstrumentPage.css'; // Make sure the path matches your project structure
 
 interface AddInstrumentPageProps {
     onRefresh: () => void;
@@ -25,15 +26,10 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
         setError('');
 
         try {
-            // Používáme axios.post s typem zpětné vazby (pokud ji nepotřebuješ, stačí axios.post)
-            // URL cesty musí odpovídat tvému Controlleru na backendu
             await axios.post(`/api/users/${userId}/instruments`, formData);
-
-            // Po úspěchu zavoláme refresh dat a navigujeme zpět
             onRefresh();
             navigate(`/users/${userId}`);
         } catch (err) {
-            // TypeScript bezpečné ošetření chyb bez použití 'any'
             if (axios.isAxiosError(err)) {
                 const message = err.response?.data?.message || err.message || 'Failed to add instrument';
                 setError(message);
@@ -48,18 +44,21 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
     };
 
     return (
-        <div className="page">
-            <header className="page-header">
-                <h2>Add Instrument for User</h2>
-                <p>Owner ID: <code>{userId}</code></p>
-                <button onClick={() => navigate(`/users/${userId}`)}>Cancel</button>
+        <div className="page add-instrument-container">
+            <header className="add-instrument-header">
+                <div className="header-title-group">
+                    <h2>Nový hudební nástroj</h2>
+                </div>
+                <button className="btn-cancel" onClick={() => navigate(`/users/${userId}`)}>
+                    Cancel
+                </button>
             </header>
 
             <form className="admin-form" onSubmit={handleSubmit}>
-                {error && <div className="error-box" style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+                {error && <div className="error-box">{error}</div>}
 
                 <div className="form-group">
-                    <label>Instrument Name</label>
+                    <label>Název nástroje</label>
                     <input
                         type="text"
                         required
@@ -70,7 +69,7 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
                 </div>
 
                 <div className="form-group">
-                    <label>Price (CZK)</label>
+                    <label>Částka (CZK)</label>
                     <input
                         type="number"
                         required
@@ -80,9 +79,8 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
                 </div>
 
                 <div className="form-group">
-                    <label>Description</label>
+                    <label>Popisek</label>
                     <textarea
-                        className="textbox"
                         rows={4}
                         value={formData.description}
                         onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -91,7 +89,7 @@ const AddInstrumentPage = ({ onRefresh }: AddInstrumentPageProps) => {
                 </div>
 
                 <button type="submit" disabled={isSubmitting} className="submit-btn">
-                    {isSubmitting ? 'Saving...' : 'Save Instrument'}
+                    {isSubmitting ? 'Ukládám...' : 'Uložit'}
                 </button>
             </form>
         </div>

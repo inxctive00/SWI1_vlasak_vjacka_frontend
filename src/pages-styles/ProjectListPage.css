@@ -1,0 +1,119 @@
+.project-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.project-list-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: var(--text-primary);
+}
+
+.project-list-header p {
+    color: var(--text-secondary);
+    margin: 4px 0 0;
+    font-size: 0.95rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.project-card {
+    padding: 24px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+}
+
+.project-card-title {
+    color: var(--primary);
+    cursor: pointer;
+    margin: 0 0 12px 0;
+    font-size: 1.4rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.project-card-title:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.project-card-desc {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    min-height: 48px;
+    line-height: 1.5;
+}
+
+.members-section-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.member-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-grow: 1;
+}
+
+.member-tag {
+    padding: 6px 12px;
+    border-radius: 20px;
+    background-color: #f1f5f9;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.member-tag:hover {
+    background-color: var(--border-color);
+}
+
+.empty-members {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.join-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--success);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    margin-top: auto;
+}
+
+.join-btn:hover {
+    background-color: var(--success-hover);
+}

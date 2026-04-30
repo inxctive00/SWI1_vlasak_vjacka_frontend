@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserTable from '../components/UserTable';
-import '/src/pages-styles/UserListPage.css'; // Import the new CSS file
+//import '/src/pages-styles/UserListPage.css';
+import axios from 'axios';
+import '/src/style.css';
 
 export interface Instrument {
     id: string;
@@ -31,13 +33,15 @@ export type SortableUserKey = keyof Omit<User, 'instruments'>;
 interface UserListPageProps {
     users: User[];
     isLoading: boolean;
+    fetchUsers: () => void;
 }
 
-const UserListPage = ({ users, isLoading }: UserListPageProps) => {
+const UserListPage = ({ users, isLoading,fetchUsers }: UserListPageProps) => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
 
     const currentUserRole = localStorage.getItem('userRole');
+    const isAdmin = currentUserRole === 'ROLE_ADMIN';
 
     const [sortConfig, setSortConfig] = useState<{ key: SortableUserKey; direction: 'asc' | 'desc' }>({
         key: 'username',
@@ -56,6 +60,18 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleDeleteUser = async (userId: string) => {
+        if (window.confirm("Opravdu chcete smazat tohoto uživatele? Tato akce je nevratná.")) {
+            try {
+                await axios.delete(`/api/users/${userId}`);
+                fetchUsers();
+            } catch (error) {
+                console.error("Chyba při mazání uživatele:", error);
+                alert("Nepodařilo se smazat uživatele.");
+            }
+        }
+    };
 
     const sortedUsers = [...filteredUsers].sort((a, b) => {
         const direction = sortConfig.direction === 'asc' ? 1 : -1;
@@ -127,6 +143,8 @@ const UserListPage = ({ users, isLoading }: UserListPageProps) => {
                         users={formattedUsers}
                         sortConfig={sortConfig}
                         onRequestSort={requestSort}
+                        isAdmin={isAdmin}
+                        onDelete={handleDeleteUser}
                     />
                 )}
             </div>

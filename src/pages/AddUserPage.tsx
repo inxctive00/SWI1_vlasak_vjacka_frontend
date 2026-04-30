@@ -2,8 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import type { User } from './UserListPage';
-import '/src/pages-styles/AddUserPage.css';
-
+//import '/src/pages-styles/AddUserPage.css';
+import '/src/style.css';
 interface AddUserPageProps {
     onUserAdded: (user: User) => void;
 }
@@ -57,7 +57,7 @@ const AddUserPage = ({ onUserAdded }: AddUserPageProps) => {
     return (
         <div className="page add-user-container">
             <header className="add-user-header">
-                <h2 className="header-title">Add New User</h2>
+                <h2 className="header-title">Přidání nového uživatele</h2>
                 <button className="btn-secondary" onClick={() => navigate('/users')}>
                     Cancel
                 </button>

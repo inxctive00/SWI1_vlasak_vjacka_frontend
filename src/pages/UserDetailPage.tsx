@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import type { User, Instrument, Project } from './UserListPage';
-import '/src/pages-styles/UserDetailPage.css';
+//import '/src/pages-styles/UserDetailPage.css';
+import '/src/style.css';
 
 interface UserDetailPageProps {
     users: User[];

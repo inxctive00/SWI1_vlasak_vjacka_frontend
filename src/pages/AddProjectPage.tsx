@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import type { User, Project } from './UserListPage';
-import '/src/pages-styles/AddProjectPage.css';
+import '/src/style.css';
 
 interface AddProjectPageProps {
     onProjectAdded: (project: Project) => void;

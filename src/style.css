@@ -1,0 +1,914 @@
+/* ==========================================================================
+   1. GLOBAL VARIABLES & BASE STYLES
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    /* Base Typography & Rendering */
+    line-height: 1.5;
+    font-weight: 400;
+    color-scheme: light dark;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Custom Design System Variables */
+    --bg-main: #f4f7f9;
+    --bg-surface: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --success: #10b981;
+    --success-hover: #059669;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+}
+
+#root {
+    /* Constraint applied to make all elements significantly less wide */
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+/* Base HTML Elements */
+h1 {
+    font-size: 3.2em;
+    line-height: 1.1;
+}
+
+a {
+    font-weight: 500;
+    color: var(--primary);
+    text-decoration: inherit;
+}
+
+a:hover {
+    color: var(--primary-hover);
+}
+
+button {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: #1a1a1a;
+    cursor: pointer;
+    transition: border-color 0.25s;
+}
+
+button:hover {
+    border-color: #646cff;
+}
+
+button:focus,
+button:focus-visible {
+    outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* ==========================================================================
+   2. COLOR SCHEME REFINEMENTS
+   ========================================================================== */
+@media (prefers-color-scheme: light) {
+    button {
+        background-color: #f9f9f9;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-main: #0f172a;
+        --bg-surface: #1e293b;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --border-color: #334155;
+    }
+
+    .user-table th { background-color: #1e293b; }
+    .user-table tbody tr:hover { background-color: #334155; }
+    .uuid-text, .uuid-cell { background: #334155; color: #cbd5e1; }
+    .nav-links a:hover { background-color: #334155; }
+    /* Dark mode application to new/fixed Project classes */
+    .detail-card, .admin-form, .user-table, .table-container, .metric-card,
+    .project-card, .project-sidebar-card, .member-card, .instrument-card,
+    .available-user-item, .user-select-grid {
+        background-color: var(--bg-surface) !important;
+        border-color: var(--border-color);
+    }
+
+    .project-main-content .members-header h3 {
+        color: var(--text-primary);
+    }
+
+    .available-users-list {
+        background-color: rgba(255,255,255,0.02);
+        border-color: #444;
+    }
+
+    .member-info strong {
+        color: var(--text-primary);
+    }
+}
+
+/* ==========================================================================
+   3. LAYOUT & NAVIGATION
+   ========================================================================== */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.page {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.main-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 32px;
+    background-color: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+    border-radius: 0 0 8px 8px; /* Softens corners of the nav container */
+}
+
+.nav-links {
+    display: flex;
+    gap: 8px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+}
+
+.nav-links a:hover {
+    background-color: #f1f5f9;
+    color: var(--primary);
+}
+
+.nav-user {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.nav-user b {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.content {
+    padding: 0 0 32px 0; /* Adjusted padding since #root handles the lateral spacing */
+}
+
+/* ==========================================================================
+   4. COMMON COMPONENTS (Buttons, Search, Badges, Loaders)
+   ========================================================================== */
+.btn-primary {
+    padding: 10px 16px;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover { background-color: var(--primary-hover); }
+
+.btn-secondary, .btn-cancel {
+    padding: 10px 16px;
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover, .btn-cancel:hover {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Local override for .btn-cancel when used as a close action */
+.action-btn.btn-cancel {
+    border-color: #fca5a5; /* Red border */
+    color: var(--danger);
+}
+.action-btn.btn-cancel:hover {
+    background-color: #fef2f2;
+}
+
+.btn-delete {
+    background-color: var(--danger);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 6px 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-delete:hover { background-color: var(--danger-hover); }
+
+.logout-btn {
+    padding: 8px 16px;
+    cursor: pointer;
+    background-color: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background-color: var(--danger);
+    color: white;
+}
+
+/* Action Buttons (generic for grids/headers) */
+.action-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+/* Fixed color assignments based on image_2.png intended state */
+.btn-add { background-color: #edfdf1; color: #166534; border-color: #bbf7d0; } /* Light green */
+.btn-add:hover { background-color: #dcfce7; }
+
+.btn-remove { background-color: transparent; color: var(--text-secondary); } /* Bordered grey */
+.btn-remove:hover { background-color: var(--border-color); color: var(--text-primary); }
+
+.btn-done { background-color: #f1f5f9; color: var(--text-primary); border-color: var(--border-color); }
+
+.search-container {
+    position: relative;
+    margin-bottom: 24px;
+    max-width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 40px 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.clear-search {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.clear-search:hover { color: var(--text-primary); }
+
+.badge-active {
+    background: #d1fae5;
+    color: #065f46;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.role-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    background-color: #f1f5f9;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.loader {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.no-results, .no-users-msg {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-secondary);
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+/* ==========================================================================
+   5. TABLES (Users & Listings)
+   ========================================================================== */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin: 24px 0;
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.user-table th,
+.user-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-table th {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: #f8fafc;
+}
+
+.sortable-th {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.sortable-th:hover { color: var(--primary); }
+.user-table tbody tr:hover { background-color: #f1f5f9; }
+
+.uuid-text, .uuid-cell {
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    cursor: help;
+}
+
+/* ==========================================================================
+   6. FORMS & INPUTS
+   ========================================================================== */
+.admin-form {
+    background: var(--bg-surface);
+    padding: 32px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    max-width: 450px;
+    margin-top: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.form-group { margin-bottom: 20px; }
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    transition: border-color 0.2s;
+}
+
+.submit-btn {
+    width: 100%;
+    background-color: var(--success);
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: background-color 0.2s;
+}
+
+.submit-btn:hover { background-color: var(--success-hover); }
+
+.error-box {
+    background: #fef2f2;
+    color: var(--danger);
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    border: 1px solid #fecaca;
+    font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   7. LISTS & DETAILS (Shared layouts & specific pages)
+   ========================================================================== */
+/* Header Sections (Common) */
+.user-list-header, .project-list-header, .home-header,
+.user-detail-header, .add-user-header, .add-project-header,
+.add-instrument-header, .project-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.home-header {
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-title, .home-title, .header-title-group h1, .header-title-group h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: var(--text-primary);
+}
+
+.home-title { font-size: 2rem; }
+.header-actions { display: flex; gap: 12px; align-items: center; }
+
+/* Grid Layouts (Shared structure) */
+.user-detail-grid, .home-layout-grid, .project-detail-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 32px;
+}
+
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+/* Cards (Generic styling) */
+.detail-card, .metric-card, .project-card,
+.user-sidebar-card, .project-sidebar-card,
+.instrument-card {
+    padding: 24px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.user-sidebar-card, .project-sidebar-card {
+    position: sticky;
+    top: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Corrected to left align text */
+}
+
+/* Overrides for specific card contents */
+.project-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.instrument-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/* =========================================
+   8. SPECIFIC PAGE STYLES
+   ========================================= */
+
+/* --- HOME PAGE --- */
+.home-container {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 120px);
+}
+
+.metrics-column {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.metric-label {
+    margin: 0 0 16px 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.status-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--success);
+}
+
+.status-text {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+}
+
+.home-footer {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border-color);
+}
+
+.contact-card {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+/* --- USER DETAIL PAGES --- */
+.user-avatar, .user-avatar-large {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.info-group { margin-bottom: 20px; }
+.info-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+.info-group p {
+    font-size: 1.05rem;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.info-value-mono {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 4px;
+    word-break: break-all;
+}
+
+/* --- PROJECT DETAIL PAGE --- (Fixes for image_2.png) */
+.project-sidebar-card {
+    align-items: center; /* Center main card content */
+    text-align: center;
+}
+
+.project-about-title {
+    margin: 0 0 16px 0;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: 100%;
+}
+
+.project-about-desc {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+}
+
+.edit-project-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.edit-project-btn:hover { background-color: var(--primary); color: white; }
+
+/* Main Content Area (Members Grid) */
+.project-main-content .members-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+}
+
+.project-main-content .members-header h3 {
+    margin: 0;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 1rem;
+}
+
+.members-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Fixed Add Users Section (Missing in image_2.png) */
+.add-users-section {
+    background-color: #f1f5f9; /* Light grey block */
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.add-users-title {
+    margin: 0 0 16px 0;
+    color: var(--success); /* Green title */
+}
+
+.available-users-list {
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.available-user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+.available-user-item:last-child { border-bottom: none; }
+
+.available-user-item span b { color: var(--text-primary); }
+
+/* Member Cards Grid (Restoring layout and avatars from image_2.png state) */
+.member-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.member-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.member-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+/* Apply visual cue when removing (Missing in image_2.png) */
+.member-card.is-removing {
+    border-color: #fca5a5; /* Light red border */
+    background-color: #fef2f2;
+    cursor: default;
+}
+.member-card.is-removing .member-avatar { background-color: var(--danger); }
+
+/* Avatar implementation from code (Missing in image_2.png) */
+.member-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--primary); /* Blue avatar */
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.member-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.member-info strong {
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.member-info span {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: capitalize;
+}
+
+/* Remove button overlay (Missing in image_2.png) */
+.member-remove-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--danger);
+    color: white;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+}
+
+/* --- ADD/EDIT FORMS --- */
+/* Form Specific Components */
+.project-card-title {
+    color: var(--primary);
+    cursor: pointer;
+    margin: 0 0 12px 0;
+    font-size: 1.4rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.member-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-grow: 1;
+}
+
+.member-tag {
+    padding: 6px 12px;
+    border-radius: 20px;
+    background-color: #f1f5f9;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+}
+
+.join-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--success);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Form Containers */
+.add-user-container, .add-instrument-container { max-width: 600px; margin: 0 auto; }
+.add-project-container { max-width: 800px; margin: 0 auto; }
+
+/* Selection Grids */
+.user-select-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    background-color: var(--bg-main);
+}
+
+.user-select-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+}
+
+.user-select-label.is-selected {
+    background-color: #e0f2fe;
+    border-color: var(--primary);
+}
+
+/* ==========================================================================
+   9. RESPONSIVE FALLBACKS
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Stack grid elements vertically */
+    .user-detail-grid,
+    .home-layout-grid,
+    .project-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Remove stickiness on mobile */
+    .user-sidebar-card,
+    .project-sidebar-card {
+        position: static;
+        margin-bottom: 24px;
+    }
+
+    /* Stack header actions */
+    .header-top-row, .user-list-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+}

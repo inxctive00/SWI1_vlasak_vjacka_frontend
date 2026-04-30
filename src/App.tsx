@@ -9,7 +9,7 @@ import AddUserPage from "./pages/AddUserPage.tsx";
 import AddInstrumentPage from "./pages/AddInstrumentPage.tsx";
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import Login from "./components/Login.tsx";
-import './App.css';
+import '/src/style.css';
 import AddProjectPage from './pages/AddProjectPage';
 
 // 1. GLOBAL AXIOS CONFIG: Sets base URL for all API requests
@@ -118,13 +118,13 @@ function App() {
                         <Route path="/" element={<HomePage users={users} fetchUsers={fetchAllData} isLoading={isLoading} />} />
 
                         {/* User Management */}
-                        <Route path="/users" element={<UserListPage users={users} isLoading={isLoading} />} />
+                        <Route path="/users" element={<UserListPage users={users} isLoading={isLoading} fetchUsers={fetchAllData} />} />
                         <Route path="/users/:id" element={<UserDetailPage users={users} />} />
                         <Route path="/users/add" element={<AddUserPage onUserAdded={addUser} />} />
                         <Route path="/users/:userId/add-instrument" element={<AddInstrumentPage onRefresh={fetchAllData} />} />
 
                         {/* Project Management */}
-                        <Route path="/projects" element={<ProjectListPage projects={projects} isLoading={isLoading} />} />
+                        <Route path="/projects" element={<ProjectListPage projects={projects} users={users} isLoading={isLoading} onRefresh={fetchAllData} />} />
                         <Route path="/projects/add" element={<AddProjectPage onProjectAdded={addProject} allUsers={users} />} />
                         <Route path="/projects/:id" element={
                             <ProjectDetailPage

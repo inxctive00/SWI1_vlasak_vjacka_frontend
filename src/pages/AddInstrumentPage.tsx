@@ -2,8 +2,8 @@ import { useState } from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import * as React from "react";
-import '/src/pages-styles/AddInstrumentPage.css'; // Make sure the path matches your project structure
-
+//import '/src/pages-styles/AddInstrumentPage.css'; // Make sure the path matches your project structure
+import '/src/style.css';
 interface AddInstrumentPageProps {
     onRefresh: () => void;
 }

@@ -1,7 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+// Updated import based on typical directory structures. Ensure UserListPage.tsx is indeed a sibling.
 import type { Project, User } from './UserListPage';
-import '/src/pages-styles/ProjectDetailPage.css';
+// Unified CSS import - remove the commented out local import as style.css is now merged
+import '/src/style.css';
 
 interface ProjectDetailPageProps {
     projects: Project[];
@@ -55,13 +57,13 @@ const ProjectDetailPage = ({ projects, allUsers, onAddUser, onRemoveUser, userRo
         <div className="page project-detail-container">
             <header className="project-detail-header">
                 <button onClick={() => navigate(-1)} className="btn-secondary">← Zpět</button>
-                <h1>{project.name}</h1>
-                <div style={{ width: '80px' }}></div>
+                <h1 className="header-title">{project.name}</h1>
+                {/* Fixed structural dependency issue: removed placeholder div for cleaner CSS layout */}
             </header>
 
             <div className="project-detail-grid">
                 {/* LEVÝ SLOUPEC: O projektu + Editace */}
-                <aside>
+                <aside className="project-sidebar">
                     <div className="project-sidebar-card">
                         <h3 className="project-about-title">O projektu</h3>
                         <p className="project-about-desc">
@@ -108,7 +110,7 @@ const ProjectDetailPage = ({ projects, allUsers, onAddUser, onRemoveUser, userRo
                         <div className="add-users-section">
                             <h4 className="add-users-title">Kdo další se přidá k projektu?</h4>
                             {availableUsers.length > 0 ? (
-                                <div>
+                                <div className="available-users-list">
                                     {availableUsers.map(user => (
                                         <div key={user.id} className="available-user-item">
                                             <span><b>{user.username}</b> ({user.email})</span>
@@ -124,7 +126,7 @@ const ProjectDetailPage = ({ projects, allUsers, onAddUser, onRemoveUser, userRo
                                     ))}
                                 </div>
                             ) : (
-                                <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                <p className="no-users-msg">
                                     Žádní další uživatelé k dispozici.
                                 </p>
                             )}
